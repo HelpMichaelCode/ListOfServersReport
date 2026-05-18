@@ -1,4 +1,14 @@
-﻿# Function to generated ID
+﻿# Declaring a list to store file paths to be used for another function below
+$listOfPaths    = [System.Collections.Generic.List[string]]::new()
+$month          = (Get-Date).ToString("MMMM")
+
+# Base Path
+$basePath       = "$env:OneDrive\Documents\PowerShell_Projects\ServerDetails_PSProject"
+
+# Dynamic counter for version history
+$versionCount   = (Get-ChildItem -Path $basePath -Directory | Where-Object { $_.Name -like "$month-version*"}).Count + 1
+
+# Function to generated ID
 function Generate-RandomID {
     
     param (
@@ -111,47 +121,22 @@ function Generate-ServerDetails {
     $listOfServers
 }
 
-# Declaring a list to store file paths to be used for another function below
-$listOfPaths    = [System.Collections.Generic.List[string]]::new()
-$month          = (Get-Date).ToString("MMMM")
-$versionCount   = 0
-
 # Function to generate .CSV file
 function Generate-CSVFiles {
 
     $servers        = Generate-ServerDetails
-    $basePath       = "$env:OneDrive\Documents\PowerShell_Projects\ServerDetails_PSProject"
     $idleServers    = [System.Collections.Generic.List[object]]::new()
     $onlineServers  = [System.Collections.Generic.List[object]]::new()
     $offlineServers = [System.Collections.Generic.List[object]]::new()
 
-    # Check if the folder exist for this months report.
-    # If it does not exist, then create it.
-    $monthReport    = Join-Path $basePath $month
+    $newVersionFolder = "$month-version$versionCount"
 
-    if (!(Test-Path -Path $monthReport)) {
+    # Create the folder with the version number
+    $monthReport = Join-Path $basePath $newVersionFolder
 
-        $script:versionCount++
-        $newVersionFolder = "$month-version$versionCount"
-
-        # Create the first version of the folder for this month
-        $monthReport = Join-Path $basePath $newVersionFolder
-
-        New-Item $monthReport -ItemType Directory
-    } 
-    # If the folder does exist, create a new version of the folder for this month.
-    else {
-        
-        $script:versionCount++
-        $newVersionFolder = "$month-version$versionCount"
- 
-        Write-Host "The report has been executed this month already and is stored within:n`$basePath" -ForegroundColor DarkYellow
-        Write-Host "A new folder will be created called $newVersionFolder" -ForegroundColor Green
-
-        # Create the subsequent versions of the folder for this month
-        $monthReport = Join-Path $basePath $newVersionFolder
-        New-Item $monthReport -ItemType Directory 
-    }
+    # Create the folder 
+    New-Item $monthReport -ItemType Directory
+    
 
     # Iterate through the list of servers and add them to their dedicated status list.
     foreach ($server in $servers) {
@@ -180,7 +165,6 @@ function Generate-CSVFiles {
     $listOfPaths.Add("$monthReport\OnlineServers.csv")
     $listOfPaths.Add("$monthReport\OfflineServers.csv")
 
-    return $folderName
 }
 
 # Send the .CSV files to the discord channel
@@ -223,8 +207,6 @@ function SendServerDetails-ToDiscordChannel {
     
     $response.StatusCode
 }
-
-
 
 Generate-ServerDetails
 Generate-CSVFiles
