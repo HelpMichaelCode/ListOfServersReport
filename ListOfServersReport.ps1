@@ -169,7 +169,7 @@ function Generate-CSVFiles {
 
 # Send the .CSV files to the discord channel
 function SendServerDetails-ToDiscordChannel {
-    $webURL = "https://discord.com/api/webhooks/1505155941295722647/f-7gcNREreyhlwQLAKSgRmaEndNaC0Xgy-y51aaYsf7NBGwLswucCKvCHszUk5A1ER-I"
+    $webURL = ""
     
     $zipPath = "$env:OneDrive\Documents\PowerShell_Projects\ServerDetails_PSProject\$month-version$versionCount.zip"
 
